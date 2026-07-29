@@ -20,8 +20,14 @@ pipeline {
 
         stage('Deploy Application') {
             steps {
-                echo 'Deploying application...'
-                sh 'docker-compose up -d'
+                echo 'Stopping old application...'
+                sh 'docker-compose down || true'
+
+                echo 'Starting new application...'
+                sh 'docker-compose up -d --build'
+
+                echo 'Checking running containers...'
+                sh 'docker-compose ps'
             }
         }
 
@@ -44,3 +50,6 @@ pipeline {
         }
     }
 }
+
+
+
