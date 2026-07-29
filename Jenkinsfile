@@ -5,7 +5,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                echo 'Checking project files...'
+                echo 'Checking out project from GitHub...'
                 sh 'pwd'
                 sh 'ls -la'
             }
@@ -20,22 +20,24 @@ pipeline {
 
         stage('Deploy Application') {
             steps {
-                echo 'Stopping old application...'
-                sh 'docker-compose down || true'
+                echo 'Deploying application...'
 
-                echo 'Starting new application...'
-                sh 'docker-compose up -d --build'
-
-                echo 'Checking running containers...'
-                sh 'docker-compose ps'
+                sh '''
+                    docker-compose down || true
+                    docker rm -f complete-devops-app || true
+                    docker-compose up -d
+                '''
             }
         }
 
         stage('Health Check') {
             steps {
                 echo 'Checking application health...'
-                sh 'sleep 5'
-                sh 'curl -f http://localhost:5001/health'
+
+                sh '''
+                    sleep 5
+                    curl -f http://localhost:5001/health
+                '''
             }
         }
     }
@@ -50,6 +52,3 @@ pipeline {
         }
     }
 }
-
-
-
