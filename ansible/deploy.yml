@@ -1,0 +1,34 @@
+---
+- name: Deploy Complete DevOps Application
+  hosts: local
+  connection: local
+
+  tasks:
+
+    - name: Display deployment message
+      debug:
+        msg: "Starting application deployment..."
+
+    - name: Stop existing Docker Compose application
+      command: docker-compose down
+      args:
+        chdir: /home/admin1/complete-devops-project
+      ignore_errors: yes
+
+    - name: Build and start Docker application
+      command: docker-compose up -d --build
+      args:
+        chdir: /home/admin1/complete-devops-project
+
+    - name: Wait for application to start
+      pause:
+        seconds: 5
+
+    - name: Check application health
+      uri:
+        url: http://localhost:5001/health
+        status_code: 200
+
+    - name: Deployment completed
+      debug:
+        msg: "Application deployed successfully!"
