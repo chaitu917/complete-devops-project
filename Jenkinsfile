@@ -1,11 +1,12 @@
 pipeline {
+
     agent any
 
     stages {
 
         stage('Checkout') {
             steps {
-                echo 'Checking out project from GitHub...'
+                echo 'Checking project files...'
                 sh 'pwd'
                 sh 'ls -la'
             }
@@ -18,14 +19,13 @@ pipeline {
             }
         }
 
-        stage('Deploy Application') {
+        stage('Ansible Deployment') {
             steps {
-                echo 'Deploying application...'
-
+                echo 'Deploying application using Ansible...'
                 sh '''
-                    docker-compose down || true
-                    docker rm -f complete-devops-app || true
-                    docker-compose up -d
+                    ansible-playbook \
+                    -i ansible/inventory \
+                    ansible/deploy.yml
                 '''
             }
         }
@@ -33,11 +33,8 @@ pipeline {
         stage('Health Check') {
             steps {
                 echo 'Checking application health...'
-
-                sh '''
-                    sleep 5
-                    curl -f http://localhost:5001/health
-                '''
+                sh 'sleep 5'
+                sh 'curl -f http://localhost:5001/health'
             }
         }
     }
