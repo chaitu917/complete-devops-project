@@ -1,7 +1,11 @@
 ---
 - name: Deploy Complete DevOps Application
-  hosts: local
+  hosts: localhost
   connection: local
+  become: yes
+
+  vars:
+    project_dir: "{{ lookup('env','WORKSPACE') | default('/home/admin1/complete-devops-project', true) }}"
 
   tasks:
 
@@ -9,16 +13,23 @@
       debug:
         msg: "Starting application deployment..."
 
+    - name: Display project directory
+      debug:
+        msg: "Using project directory: {{ project_dir }}"
+
     - name: Stop existing Docker Compose application
       command: docker-compose down
       args:
-        chdir: /home/admin1/complete-devops-project
+        chdir: "{{ project_dir }}"
       ignore_errors: yes
+
+    - name: Remove old container if it exists
+      shell: docker rm -f complete-devops-app || true
 
     - name: Build and start Docker application
       command: docker-compose up -d --build
       args:
-        chdir: /home/admin1/complete-devops-project
+        chdir: "{{ project_dir }}"
 
     - name: Wait for application to start
       pause:
@@ -27,6 +38,7 @@
     - name: Check application health
       uri:
         url: http://localhost:5001/health
+        method: GET
         status_code: 200
 
     - name: Deployment completed
